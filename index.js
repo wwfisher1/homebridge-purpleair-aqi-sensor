@@ -21,6 +21,7 @@ function PurpleAirAccessory(log, config) {
 	this.name = config['name'];
 	this.purpleID = config['purpleID'];
 	this.updateFreq = config['updateFreq'];
+	this.adjust = config['adjust'] || 'NONE';
 	this.lastupdate = 0;
 	this.log.info("PurpleAir is working");
 	if (this.updateFreq == undefined) this.updateFreq = 300		// default 5 minutes
@@ -150,6 +151,17 @@ PurpleAirAccessory.prototype = {
 	calculateAQI: function (pm) {
 		var aqi;
 		var self = this;
+		switch (self.adjust) {
+			case 'LRAPA':
+				pm = 0.5 * pm - 0.66;
+				break;
+			case 'AQANDU':
+				pm = 0.778 * pm + 2.65;
+				break;
+			case 'NONE':
+			default:
+				breakl
+		}
 		if (pm > 500) {
 			aqi = 500;
 		} else if (pm > 350.5) {
