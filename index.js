@@ -133,6 +133,7 @@ PurpleAirAccessory.prototype = {
 					} else {
 						pm = Math.round(statsB.v * 100) / 100;
 					}
+					pm = self.adjustPM(pm);
 					aqi = Math.round(self.calculateAQI(pm));
 				} else {
 					// No valid data
@@ -148,10 +149,8 @@ PurpleAirAccessory.prototype = {
 		}
 	},
 
-	calculateAQI: function (pm) {
-		var aqi;
-		var self = this;
-		switch (self.adjust) {
+	adjustPM(pm) {
+		switch (this.adjust) {
 			case 'LRAPA':
 				pm = 0.5 * pm - 0.66;
 				break;
@@ -160,8 +159,14 @@ PurpleAirAccessory.prototype = {
 				break;
 			case 'NONE':
 			default:
-				breakl
+				break;
 		}
+		return pm;
+	},
+
+	calculateAQI: function (pm) {
+		var aqi;
+		var self = this;
 		if (pm > 500) {
 			aqi = 500;
 		} else if (pm > 350.5) {
