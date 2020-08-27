@@ -22,6 +22,7 @@ function PurpleAirAccessory(log, config) {
 	this.purpleID = config['purpleID'];
 	this.updateFreq = config['updateFreq'];
 	this.adjust = config['adjust'] || 'NONE';
+	this.statsKey = config['statsKey'] || 'v';
 	this.lastupdate = 0;
 	this.log.info("PurpleAir is working");
 	if (this.updateFreq == undefined) this.updateFreq = 300		// default 5 minutes
@@ -127,11 +128,11 @@ PurpleAirAccessory.prototype = {
 				var aqi
 				if (single >= 0) {
 					if (single == 2) {
-						pm = Math.round(((statsA.v + statsB.v) / 2.0) * 100) / 100;
+						pm = Math.round(((statsA[self.statsKey] + statsB[self.statsKey]) / 2.0) * 100) / 100;
 					} else if (single == 0) {
-						pm = Math.round(statsA.v * 100) / 100;
+						pm = Math.round(statsA[self.statsKey] * 100) / 100;
 					} else {
-						pm = Math.round(statsB.v * 100) / 100;
+						pm = Math.round(statsB[self.statsKey] * 100) / 100;
 					}
 					pm = self.adjustPM(pm);
 					aqi = Math.round(self.calculateAQI(pm));
