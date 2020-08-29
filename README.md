@@ -25,7 +25,9 @@ Example config.json
           "accessory": "PurpleAir",
           "purpleID": "PURPLE_AIR_STATION_ID",
           "updateFreq": MIN_SECS_BETWEEN_API_READ,
-          "name": "PurpleAir Air Quality"
+          "name": "PurpleAir Air Quality",
+          "statsKey": "Stats key to use for PM2.5",
+          "adjust": "Adjustment algorithm"
     }
 ]
 ```
@@ -36,6 +38,8 @@ Fields:
 - `purpleID` PurpleAir Station ID (a number).
 - `updateFreq` minimum number of seconds between reads from PurpleAir API (a number - default is 90 seconds)
 - `name` Is the name of accessory (required).
+- `statsKey` Selects the key from the sensor to report. The sensor reports various time based averages which can be selected. These are: v (real time), v1 (10 minute average), v2 (30 minute average), v3 (1 hour average), v4 (6 hour average), v5 (24 hour average), v6 (1 week average).
+- `adjust` Adjust the raw PM2.5 value based on various algorithms (https://thebolditalic.com/understanding-purpleair-vs-airnow-gov-measurements-of-wood-smoke-pollution-562923a55226). These are: NONE (raw values), LRAPA and AQANDU.
 
 To find your specific "PURPLE_AIR_STATION_ID" (a string):
 1. Use the PurpleAir Map to locate a station (https://www.purpleair.com/map)
