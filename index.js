@@ -79,7 +79,7 @@ PurpleAirAccessory.prototype = {
 				// If error
 			}
 			else {
-				self.purpleAirService.setCharacteristic(Characteristic.StatusFault, 1);
+				self.purpleAirService.updateCharacteristic(Characteristic.StatusFault, 1);
 				self.log.error("PurpleAir Network or Unknown Error.");
 			};
 		});
@@ -89,7 +89,7 @@ PurpleAirAccessory.prototype = {
 	 * Update data
 	 */
 	updateData: function (data) {
-		this.purpleAirService.setCharacteristic(Characteristic.StatusFault, 0);
+		this.purpleAirService.updateCharacteristic(Characteristic.StatusFault, 0);
 
 		// PurpleAir outdoor sensors send data from two internal sensors, but indoor sensors only have one
 		// We have to verify exterior/interior, and if exterior, whether both sensors are working or only 1
@@ -125,8 +125,8 @@ PurpleAirAccessory.prototype = {
 		var pm = this.adjustPM(va);
 		var aqi = this.calculateAQI(pm);
 
-		this.purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pm.toFixed(2));
-		this.purpleAirService.setCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
+		this.purpleAirService.updateCharacteristic(Characteristic.PM2_5Density, pm.toFixed(2));
+		this.purpleAirService.updateCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
 
 		this.log.info("PurpleAir %s pm2_5 is %s, AQI is %s, Air Quality is %s.", this.statsKey, pm.toString(), aqi.toString(), this.airQualityString(aqi));
 	},
@@ -253,9 +253,9 @@ PurpleAirAccessory.prototype = {
 		 */
 		var informationService = new Service.AccessoryInformation();
 		informationService
-			.setCharacteristic(Characteristic.Manufacturer, "PurpleAir")
-			.setCharacteristic(Characteristic.Model, "JSON_API")
-			.setCharacteristic(Characteristic.SerialNumber, this.purpleID);
+			.updateCharacteristic(Characteristic.Manufacturer, "PurpleAir")
+			.updateCharacteristic(Characteristic.Model, "JSON_API")
+			.updateCharacteristic(Characteristic.SerialNumber, this.purpleID);
 		services.push(informationService);
 
 		/**
