@@ -26,8 +26,8 @@ Example config.json
           "purpleID": "PURPLE_AIR_STATION_ID",
           "updateFreq": MIN_SECS_BETWEEN_API_READ,
           "name": "PurpleAir Air Quality",
-          "statsKey": "Stats key to use for PM2.5",
-          "adjust": "Adjustment algorithm"
+          "statsKey": "Stats key to use to select appropriate PM2.5 value",
+          "adjust": "PM2.5 Adjustment algorithm"
     }
 ]
 ```

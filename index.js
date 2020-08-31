@@ -1,7 +1,6 @@
 "use strict";
 
 var Service, Characteristic;
-var purpleAirService;
 var request = require('request');
 
 module.exports = function (homebridge) {
@@ -20,13 +19,40 @@ function PurpleAirAccessory(log, config) {
 	// Name and API key from PurpleAir
 	this.name = config['name'];
 	this.purpleID = config['purpleID'];
-	this.updateFreq = config['updateFreq'];
-	this.adjust = config['adjust'] || 'NONE';
-	this.statsKey = config['statsKey'] || 'v';
+	switch (config['adjust']) {
+		case 'NONE':
+		case 'LRAPA':
+		case 'AQANDU':
+			this.adjust = config['adjust'];
+			break;
+		default:
+			this.adjust = 'NONE';
+			break;
+	}
+	switch (config['statsKey']) {
+		case 'v':
+		case 'v1':
+		case 'v2':
+		case 'v3':
+		case 'v4':
+		case 'v5':
+		case 'v6':
+			this.statsKey = config['statsKey'];
+			break;
+		default:
+			this.statsKey = 'v';
+			break;
+	}
 	this.lastupdate = 0;
-	this.log.info("PurpleAir is working");
-	if (this.updateFreq == undefined) this.updateFreq = 300		// default 5 minutes
+
+	this.updateFreq = config['updateFreq'];
+	if (!this.updateFreq) {
+		this.updateFreq = 300		// default 5 minutes
+	}
 	this.updateMsecs = this.updateFreq * 1000;
+
+	this.log.info("PurpleAir is working");
+
 	// Update the air data at the requested frequency.
 	var self = this;
 	setInterval(function () {
@@ -53,7 +79,7 @@ PurpleAirAccessory.prototype = {
 				// If error
 			}
 			else {
-				purpleAirService.setCharacteristic(Characteristic.StatusFault, 1);
+				self.purpleAirService.setCharacteristic(Characteristic.StatusFault, 1);
 				self.log.error("PurpleAir Network or Unknown Error.");
 			};
 		});
@@ -63,7 +89,7 @@ PurpleAirAccessory.prototype = {
 	 * Update data
 	 */
 	updateData: function (data) {
-		purpleAirService.setCharacteristic(Characteristic.StatusFault, 0);
+		this.purpleAirService.setCharacteristic(Characteristic.StatusFault, 0);
 
 		// PurpleAir outdoor sensors send data from two internal sensors, but indoor sensors only have one
 		// We have to verify exterior/interior, and if exterior, whether both sensors are working or only 1
@@ -99,8 +125,8 @@ PurpleAirAccessory.prototype = {
 		var pm = this.adjustPM(va);
 		var aqi = this.calculateAQI(pm);
 
-		purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pm.toFixed(2));
-		purpleAirService.setCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
+		this.purpleAirService.setCharacteristic(Characteristic.PM2_5Density, pm.toFixed(2));
+		this.purpleAirService.setCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
 
 		this.log.info("PurpleAir %s pm2_5 is %s, AQI is %s, Air Quality is %s.", this.statsKey, pm.toString(), aqi.toString(), this.airQualityString(aqi));
 	},
@@ -235,12 +261,12 @@ PurpleAirAccessory.prototype = {
 		/**
 		 * PurpleAirService
 		 */
-		purpleAirService = new Service.AirQualitySensor(this.name);
+		this.purpleAirService = new Service.AirQualitySensor(this.name);
 
-		purpleAirService.getCharacteristic(Characteristic.AirQuality);
-		purpleAirService.addCharacteristic(Characteristic.StatusFault);
-		purpleAirService.addCharacteristic(Characteristic.PM2_5Density);
-		services.push(purpleAirService);
+		this.purpleAirService.getCharacteristic(Characteristic.AirQuality);
+		this.purpleAirService.addCharacteristic(Characteristic.StatusFault);
+		this.purpleAirService.addCharacteristic(Characteristic.PM2_5Density);
+		services.push(this.purpleAirService);
 
 		return services;
 	}
