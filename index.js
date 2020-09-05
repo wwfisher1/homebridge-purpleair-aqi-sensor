@@ -6,7 +6,7 @@ var request = require('request');
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
-	homebridge.registerAccessory("homebridge-purpleair", "PurpleAir", PurpleAirAccessory);
+	homebridge.registerAccessory("@timjwilkinson/homebridge-purpleair", "PurpleAir", PurpleAirAccessory);
 };
 
 
@@ -79,7 +79,7 @@ PurpleAirAccessory.prototype = {
 				// If error
 			}
 			else {
-				self.purpleAirService.updateCharacteristic(Characteristic.StatusFault, 1);
+				self.airQuality.updateCharacteristic(Characteristic.StatusFault, 1);
 				self.log.error("PurpleAir Network or Unknown Error.");
 			};
 		});
@@ -89,12 +89,13 @@ PurpleAirAccessory.prototype = {
 	 * Update data
 	 */
 	updateData: function (data) {
-		this.purpleAirService.updateCharacteristic(Characteristic.StatusFault, 0);
+		this.airQuality.updateCharacteristic(Characteristic.StatusFault, 0);
 
 		// PurpleAir outdoor sensors send data from two internal sensors, but indoor sensors only have one
 		// We have to verify exterior/interior, and if exterior, whether both sensors are working or only 1
 		var statsA;
 		var statsB = { lastModified: 0 };
+		var dataA;
 		var newest = 0;
 
 		// Basic sanity check
@@ -102,7 +103,8 @@ PurpleAirAccessory.prototype = {
 			return;
 		}
 
-		statsA = JSON.parse(data.results[0].Stats);
+		dataA = data.results[0];
+		statsA = JSON.parse(dataA.Stats);
 		if (data.results[1] && data.results[1].Stats && data.results[0].DEVICE_LOCATIONTYPE !== 'inside') {
 			statsB = JSON.parse(data.results[1].Stats);
 		}
@@ -125,10 +127,17 @@ PurpleAirAccessory.prototype = {
 		var pm = this.adjustPM(va);
 		var aqi = this.calculateAQI(pm);
 
-		this.purpleAirService.updateCharacteristic(Characteristic.PM2_5Density, pm.toFixed(2));
-		this.purpleAirService.updateCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
+		this.airQuality.updateCharacteristic(Characteristic.PM2_5Density, pm.toFixed(2));
+		this.airQuality.updateCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
 
-		this.log.info("PurpleAir %s pm2_5 is %s, AQI is %s, Air Quality is %s.", this.statsKey, pm.toString(), aqi.toString(), this.airQualityString(aqi));
+		var tempC = (parseFloat(dataA.temp_f) - 32) * 5 / 9;
+		var hum = parseFloat(dataA.humidity);
+
+		this.temperature.updateCharacteristic(Characteristic.CurrentTemperature, tempC);
+		this.humidity.updateCharacteristic(Characteristic.CurrentRelativeHumidity, hum);
+
+		this.log.info("PurpleAir %s pm2_5 is %s, AQI is %s, Air Quality is %s. Temperature is %sC. Humidity is %s%%",
+			this.statsKey, pm.toString(), aqi.toString(), this.airQualityString(aqi), tempC.toFixed(1), hum.toFixed(1));
 	},
 
 	adjustPM(pm) {
@@ -186,43 +195,43 @@ PurpleAirAccessory.prototype = {
 	transformAQI: function (aqi) {
 		// this.log("Transforming %s.", aqi.toString())
 		if (aqi == undefined) {
-			return (0); // Error or unknown response
+			return 0; // Error or unknown response
 		}
 		else if (aqi <= 50) {
-			return (1); // Return EXCELLENT
+			return 1; // Return EXCELLENT
 		}
 		else if (aqi <= 100) {
-			return (2); // Return GOOD
+			return 2; // Return GOOD
 		}
 		else if (aqi <= 150) {
-			return (3); // Return FAIR
+			return 3; // Return FAIR
 		}
 		else if (aqi <= 200) {
-			return (4); // Return INFERIOR
+			return 4; // Return INFERIOR
 		}
 		else if (aqi > 200) {
-			return (5); // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
+			return 5; // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
 		}
 	},
 
 	airQualityString: function (aqi) {
 		if (aqi == undefined) {
-			return ("Unknown"); // Error or unknown response
+			return "Unknown"; // Error or unknown response
 		}
 		else if (aqi <= 50) {
-			return ("Excellent"); // Return EXCELLENT
+			return "Excellent"; // Return EXCELLENT
 		}
 		else if (aqi <= 100) {
-			return ("Good"); // Return GOOD
+			return "Good"; // Return GOOD
 		}
 		else if (aqi <= 150) {
-			return ("Fair"); // Return FAIR
+			return "Fair"; // Return FAIR
 		}
 		else if (aqi <= 200) {
-			return ("Inferior"); // Return INFERIOR
+			return "Inferior"; // Return INFERIOR
 		}
 		else if (aqi > 200) {
-			return ("Poor"); // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
+			return "Poor"; // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
 		}
 	},
 
@@ -246,8 +255,6 @@ PurpleAirAccessory.prototype = {
 	},
 
 	getServices: function () {
-		var services = [];
-
 		/**
 		 * Informations
 		 */
@@ -256,18 +263,24 @@ PurpleAirAccessory.prototype = {
 			.updateCharacteristic(Characteristic.Manufacturer, "PurpleAir")
 			.updateCharacteristic(Characteristic.Model, "JSON_API")
 			.updateCharacteristic(Characteristic.SerialNumber, this.purpleID);
-		services.push(informationService);
 
 		/**
-		 * PurpleAirService
+		 * airQuality, temperature and humidity
 		 */
-		this.purpleAirService = new Service.AirQualitySensor(this.name);
+		this.airQuality = new Service.AirQualitySensor('Air Quality');
+		this.airQuality.getCharacteristic(Characteristic.AirQuality);
+		this.airQuality.getCharacteristic(Characteristic.StatusFault);
+		this.airQuality.getCharacteristic(Characteristic.PM2_5Density);
 
-		this.purpleAirService.getCharacteristic(Characteristic.AirQuality);
-		this.purpleAirService.addCharacteristic(Characteristic.StatusFault);
-		this.purpleAirService.addCharacteristic(Characteristic.PM2_5Density);
-		services.push(this.purpleAirService);
+		this.temperature = new Service.TemperatureSensor('Temperature');
+		this.temperature.getCharacteristic(Characteristic.CurrentTemperature).setProps({ minValue: -40, maxValue: 125 });
 
-		return services;
+		this.humidity = new Service.HumiditySensor('Humidity');
+		this.humidity.getCharacteristic(Characteristic.CurrentRelativeHumidity);
+
+		this.airQuality.isPrimaryService = true;
+		this.airQuality.linkedServices = [ this.temperature, this.humidity ];
+
+		return [ informationService, this.airQuality, this.temperature, this.humidity ];
 	}
 };
