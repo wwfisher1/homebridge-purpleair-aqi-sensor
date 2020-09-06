@@ -16,20 +16,18 @@ module.exports = function (homebridge) {
 function PurpleAirAccessory(log, config) {
 	this.log = log;
 
-	// Name and API key from PurpleAir
-	this.name = config['name'];
-	this.purpleID = config['purpleID'];
-	switch (config['adjust']) {
+	this.purpleID = config.purpleID;
+	switch (config.adjust) {
 		case 'NONE':
 		case 'LRAPA':
 		case 'AQANDU':
-			this.adjust = config['adjust'];
+			this.adjust = config.adjust;
 			break;
 		default:
 			this.adjust = 'NONE';
 			break;
 	}
-	switch (config['statsKey']) {
+	switch (config.statsKey) {
 		case 'v':
 		case 'v1':
 		case 'v2':
@@ -37,7 +35,7 @@ function PurpleAirAccessory(log, config) {
 		case 'v4':
 		case 'v5':
 		case 'v6':
-			this.statsKey = config['statsKey'];
+			this.statsKey = config.statsKey;
 			break;
 		default:
 			this.statsKey = 'v';
@@ -45,11 +43,12 @@ function PurpleAirAccessory(log, config) {
 	}
 	this.lastupdate = 0;
 
-	this.updateFreq = config['updateFreq'];
+	this.updateFreq = config.updateFreq;
 	if (!this.updateFreq) {
 		this.updateFreq = 300		// default 5 minutes
 	}
 	this.updateMsecs = this.updateFreq * 1000;
+	this.includePM10 = config.includePM10 || false;
 
 	this.log.info("PurpleAir is working");
 
@@ -96,6 +95,7 @@ PurpleAirAccessory.prototype = {
 		var statsA;
 		var statsB = { lastModified: 0 };
 		var dataA;
+		var dataB;
 		var newest = 0;
 
 		// Basic sanity check
@@ -106,7 +106,8 @@ PurpleAirAccessory.prototype = {
 		dataA = data.results[0];
 		statsA = JSON.parse(dataA.Stats);
 		if (data.results[1] && data.results[1].Stats && data.results[0].DEVICE_LOCATIONTYPE !== 'inside') {
-			statsB = JSON.parse(data.results[1].Stats);
+			dataB = data.results[1];
+			statsB = JSON.parse(dataB.Stats);
 		}
 
 		newest = Math.max(statsA.lastModified, statsB.lastModified);
@@ -123,11 +124,20 @@ PurpleAirAccessory.prototype = {
 		else if (!va) {
 			va = vb || 0;
 		}
+		var pm10 = parseFloat(dataA.pm10_0_atm);
+		if (dataB) {
+			pm10 = (pm10 + parseFloat(dataB.pm10_0_atm)) / 2;
+		}
 
-		var pm = this.adjustPM(va);
-		var aqi = this.calculateAQI(pm);
+		var pm2_5 = this.adjustPM(va);
+		var aqi = this.calculateAQI2_5(pm2_5);
+		if (this.includePM10) {
+			// If we include PM10 measurements in the AQI, we select the highest of the two
+			aqi = Math.max(aqi, this.calculateAQI10(pm10));
+		}
 
-		this.airQuality.updateCharacteristic(Characteristic.PM2_5Density, pm.toFixed(2));
+		this.airQuality.updateCharacteristic(Characteristic.PM2_5Density, pm2_5.toFixed(2));
+		this.airQuality.updateCharacteristic(Characteristic.PM10Density, pm10.toFixed(2));
 		this.airQuality.updateCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
 
 		var tempC = (parseFloat(dataA.temp_f) - 32) * 5 / 9;
@@ -136,8 +146,8 @@ PurpleAirAccessory.prototype = {
 		this.temperature.updateCharacteristic(Characteristic.CurrentTemperature, tempC);
 		this.humidity.updateCharacteristic(Characteristic.CurrentRelativeHumidity, hum);
 
-		this.log.info("PurpleAir %s pm2_5 is %s, AQI is %s, Air Quality is %s. Temperature is %sC. Humidity is %s%%",
-			this.statsKey, pm.toString(), aqi.toString(), this.airQualityString(aqi), tempC.toFixed(1), hum.toFixed(1));
+		this.log.info("PurpleAir %s pm2_5 is %s, pm10 is %s, AQI is %s, Air Quality is %s. Temperature is %sC. Humidity is %s%%",
+			this.statsKey, pm2_5.toString(), pm10.toFixed(2), aqi.toString(), this.airQualityString(aqi), tempC.toFixed(1), hum.toFixed(1));
 	},
 
 	adjustPM(pm) {
@@ -155,7 +165,7 @@ PurpleAirAccessory.prototype = {
 		return pm;
 	},
 
-	calculateAQI: function (pm) {
+	calculateAQI2_5: function (pm) {
 		var aqi;
 		if (pm > 500) {
 			aqi = 500;
@@ -183,6 +193,35 @@ PurpleAirAccessory.prototype = {
 		}
 		else {
 			aqi = 0
+		}
+		return Math.round(aqi);
+	},
+
+	calculateAQI10: function(pm) {
+		var aqi;
+		if (pm >= 605) {
+			aqi = 500;
+		}
+		else if (pm >= 505) {
+			aqi = this.remap(pm, 505, 605, 400, 500);
+		}
+		else if (pm >= 425) {
+			aqi = this.remap(pm, 425, 505, 300, 400);
+		}
+		else if (pm >= 355) {
+			aqi = this.remap(pm, 355, 425, 200, 300);
+		}
+		else if (pm >= 255) {
+			aqi = this.remap(pm, 255, 355, 150, 200);
+		}
+		else if (pm >= 155) {
+			aqi = this.remap(pm, 155, 255, 100, 150)
+		}
+		else if (pm >= 55) {
+			aqi = this.remap(pm, 55, 155, 50, 100);
+		}
+		else {
+			aqi = this.remap(pm, 0, 55, 0, 50);
 		}
 		return Math.round(aqi);
 	},
@@ -271,6 +310,7 @@ PurpleAirAccessory.prototype = {
 		this.airQuality.getCharacteristic(Characteristic.AirQuality);
 		this.airQuality.getCharacteristic(Characteristic.StatusFault);
 		this.airQuality.getCharacteristic(Characteristic.PM2_5Density);
+		this.airQuality.getCharacteristic(Characteristic.PM10Density);
 
 		this.temperature = new Service.TemperatureSensor('Temperature');
 		this.temperature.getCharacteristic(Characteristic.CurrentTemperature).setProps({ minValue: -40, maxValue: 125 });
