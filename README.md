@@ -3,7 +3,7 @@
 
 **Homebridge plugin that is showing information about air quality from PurpleAir API.**
 
-Project is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather) and [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow).
+Project is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather), [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow) and the original [homebridge-purpleair](https://github.com/SANdood/homebridge-purpleair).
 
 ## Installation
 1. Install Homebridge using: `(sudo) npm install -g --unsafe-perm homebridge`.
@@ -14,7 +14,7 @@ Project is based on [homebridge-weather](https://github.com/werthdavid/homebridg
     4. make sure the file/directory ownership and RWX permissions are the same as other modules in that directory
 1. Update your `homebridge` configuration file like the example below.
 
-This plugin is returning only: AQI (Air Quality Index) and PM2.5
+This plugin supports Air Quality, PM2.5, Temperature and Humidity.
 
 ## Configuration
 Example config.json

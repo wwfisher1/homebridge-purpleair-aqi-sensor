@@ -1,7 +1,7 @@
 {
   "name": "@timjwilkinson/homebridge-purpleair",
-  "version": "1.0.5",
-  "description": "Homebridge plugin for showing PurpleAir air quality data (fork of original plugin, with various improvements)",
+  "version": "1.0.6",
+  "description": "Homebridge plugin for showing PurpleAir air quality, temperatire and humidity data (fork of original plugin, with various improvements)",
   "main": "index.js",
   "keywords": [
     "homebridge-plugin",
