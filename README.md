@@ -40,7 +40,7 @@ Fields:
 - `updateFreq` minimum number of seconds between reads from PurpleAir API (a number - default is 90 seconds)
 - `name` Is the name of accessory (required).
 - `statsKey` Selects the key from the sensor to report. The sensor reports various time based averages which can be selected. These are: v (real time), v1 (10 minute average), v2 (30 minute average), v3 (1 hour average), v4 (6 hour average), v5 (24 hour average), v6 (1 week average).
-- `adjust` Adjust the raw PM2.5 value based on various algorithms (https://thebolditalic.com/understanding-purpleair-vs-airnow-gov-measurements-of-wood-smoke-pollution-562923a55226). These are: NONE (raw values), LRAPA and AQANDU.
+- `adjust` Adjust the raw PM2.5 value based on various algorithms. These are: NONE (raw values), EPA, LRAPA and AQANDU.
 - `includePM10` Include PM10 measurements in the AQI calculation. The highest AQI calculated from PM2.5 and PM10 will be used to calculate the air quality. The AQI calculations from PM2.5 and PM10 are not the same.
 
 To find your specific "PURPLE_AIR_STATION_ID" (a string):

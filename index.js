@@ -19,6 +19,7 @@ function PurpleAirAccessory(log, config) {
 	this.purpleID = config.purpleID;
 	switch (config.adjust) {
 		case 'NONE':
+		case 'EPA':
 		case 'LRAPA':
 		case 'AQANDU':
 			this.adjust = config.adjust;
@@ -129,7 +130,10 @@ PurpleAirAccessory.prototype = {
 			pm10 = (pm10 + parseFloat(dataB.pm10_0_atm)) / 2;
 		}
 
-		var pm2_5 = this.adjustPM(va);
+		var tempC = (parseFloat(dataA.temp_f) - 32) * 5 / 9;
+		var hum = parseFloat(dataA.humidity);
+
+		var pm2_5 = this.adjustPM(va, hum);
 		var aqi = this.calculateAQI2_5(pm2_5);
 		if (this.includePM10) {
 			// If we include PM10 measurements in the AQI, we select the highest of the two
@@ -140,9 +144,6 @@ PurpleAirAccessory.prototype = {
 		this.airQuality.updateCharacteristic(Characteristic.PM10Density, pm10.toFixed(2));
 		this.airQuality.updateCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
 
-		var tempC = (parseFloat(dataA.temp_f) - 32) * 5 / 9;
-		var hum = parseFloat(dataA.humidity);
-
 		this.temperature.updateCharacteristic(Characteristic.CurrentTemperature, tempC);
 		this.humidity.updateCharacteristic(Characteristic.CurrentRelativeHumidity, hum);
 
@@ -150,8 +151,11 @@ PurpleAirAccessory.prototype = {
 			this.statsKey, pm2_5.toString(), pm10.toFixed(2), aqi.toString(), this.airQualityString(aqi), tempC.toFixed(1), hum.toFixed(1));
 	},
 
-	adjustPM(pm) {
+	adjustPM(pm, rh) {
 		switch (this.adjust) {
+			case 'EPA':
+				pm = 0.534 * pm - 0.0844 * rh + 5.604;
+				break;
 			case 'LRAPA':
 				pm = 0.5 * pm - 0.66;
 				break;
