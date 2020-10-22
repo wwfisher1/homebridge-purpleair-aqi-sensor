@@ -6,7 +6,7 @@ var request = require('request');
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
-	homebridge.registerAccessory("@timjwilkinson/homebridge-purpleair", "PurpleAir", PurpleAirAccessory);
+	homebridge.registerAccessory("@timjwilkinson/homebridge-PurpleAir-MultiSensor", "PurpleAir-MultiSensor", PurpleAirAccessory);
 };
 
 
@@ -46,12 +46,16 @@ function PurpleAirAccessory(log, config) {
 
 	this.updateFreq = config.updateFreq;
 	if (!this.updateFreq) {
-		this.updateFreq = 300		// default 5 minutes
+		this.updateFreq = 90		// default 90 sec
 	}
 	this.updateMsecs = this.updateFreq * 1000;
 	this.includePM10 = config.includePM10 || false;
 
 	this.log.info("PurpleAir is working");
+
+  this.localIP = config.localIP;
+ 
+  this.verboseLogging = config.verboseLogging;
 
 	// Update the air data at the requested frequency.
 	var self = this;
@@ -68,9 +72,15 @@ PurpleAirAccessory.prototype = {
 	getPurpleAirData: function () {
 		// Make request every updateFreq seconds (PurpleAir actual update frequency is around 40 seconds, but we really don't need that precision here}
 		// this.log("getPurpleAirData called... lastupdate: %s, now: %s, freq: %s", this.lastupdate.toString(), timenow.toString(), this.updateMsecs.toString());
-		var self = this;
+    var self = this;
+    
+    var url = 'https://www.purpleair.com/json?show=' + this.purpleID;
+    if (this.localIP) {
+      url = 'http://' + this.localIP + '/json';
+    }
+
 		request({
-			url: 'https://www.purpleair.com/json?show=' + this.purpleID,
+			url: url,
 			json: true,
 		}, function (err, response, data) {
 			// If no errors
@@ -147,8 +157,10 @@ PurpleAirAccessory.prototype = {
 		this.temperature.updateCharacteristic(Characteristic.CurrentTemperature, tempC);
 		this.humidity.updateCharacteristic(Characteristic.CurrentRelativeHumidity, hum);
 
-		this.log.info("PurpleAir %s pm2_5 is %s, pm10 is %s, AQI is %s, Air Quality is %s. Temperature is %sC. Humidity is %s%%",
-			this.statsKey, pm2_5.toString(), pm10.toFixed(2), aqi.toString(), this.airQualityString(aqi), tempC.toFixed(1), hum.toFixed(1));
+    if (this.verboseLogging) {
+      this.log.debug("PurpleAir %s pm2_5 is %s, pm10 is %s, AQI is %s, Air Quality is %s. Temperature is %sC. Humidity is %s%%",
+        this.statsKey, pm2_5.toString(), pm10.toFixed(2), aqi.toString(), this.airQualityString(aqi), tempC.toFixed(1), hum.toFixed(1));
+    }
 	},
 
 	adjustPM(pm, rh) {

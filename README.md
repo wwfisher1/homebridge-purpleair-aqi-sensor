@@ -1,20 +1,26 @@
-# Homebridge-purpleair
+# Homebridge-purpleair-multisensor
 [![NPM Version](https://img.shields.io/npm/v/homebridge-airly.svg)](https://www.npmjs.com/package/homebridge-airly)
 
 **Homebridge plugin that is showing information about air quality from PurpleAir API.**
 
-Project is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather), [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow) and the original [homebridge-purpleair](https://github.com/SANdood/homebridge-purpleair).
+Project is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather), [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow), [homebridge-purpleair](https://github.com/SANdood/homebridge-purpleair), and [homebridge-purpleair](https://github.com/aanon4/homebridge-purpleair).
+
+This plugin supports Air Quality, PM2.5, Temperature and Humidity.
 
 ## Installation
 1. Install Homebridge using: `(sudo) npm install -g --unsafe-perm homebridge`.
-1. Install this plugin:
+2. Install this plugin via homebridge-config-ui-x
+
+- or -
+
+1. Install Homebridge using: `(sudo) npm install -g --unsafe-perm homebridge`.
+2. Install this plugin manually:
     1. find the directory that `homebridge` was installed in (e.g. `/usr/local/lib/node-modules`)
     2. create `homebridge-purpleair` in that directory
     3. copy `index.js` and `package.js` into this directory
     4. make sure the file/directory ownership and RWX permissions are the same as other modules in that directory
-1. Update your `homebridge` configuration file like the example below.
+3. Update your `homebridge` configuration file like the example below.
 
-This plugin supports Air Quality, PM2.5, Temperature and Humidity.
 
 ## Configuration
 Example config.json
@@ -23,12 +29,14 @@ Example config.json
 "accessories": [
     {
           "accessory": "PurpleAir",
-          "purpleID": "PURPLE_AIR_STATION_ID",
-          "updateFreq": MIN_SECS_BETWEEN_API_READ,
+          "purpleID": "nnnnn",
+          "localIP": "192.168.1.xxx",
+          "updateFreq": 90,
           "name": "PurpleAir Air Quality",
-          "statsKey": "Stats key to use to select appropriate PM2.5 value",
-          "adjust": "PM2.5 Adjustment algorithm",
-          "includePM10": "True to include PM10 measurement in AQI calculation"
+          "statsKey": "v1",
+          "adjust": "NONE",
+          "includePM10": false,
+          "verboseLogging": false
     }
 ]
 ```
@@ -36,12 +44,14 @@ Example config.json
 ## Config file
 Fields:
 - `accessory` must be "PurpleAir" (required).
-- `purpleID` PurpleAir Station ID (a number).
+- `purpleID` PurpleAir Station ID (a number); required but ignored if localIP is also specified.
+- `localIP` The local IP address of your PurpleAir sensor; include only if (A)you have your own, and (B)you want to read it locally instead of over the cloud
 - `updateFreq` minimum number of seconds between reads from PurpleAir API (a number - default is 90 seconds)
 - `name` Is the name of accessory (required).
 - `statsKey` Selects the key from the sensor to report. The sensor reports various time based averages which can be selected. These are: v (real time), v1 (10 minute average), v2 (30 minute average), v3 (1 hour average), v4 (6 hour average), v5 (24 hour average), v6 (1 week average).
 - `adjust` Adjust the raw PM2.5 value based on various algorithms. These are: NONE (raw values), EPA, LRAPA and AQANDU.
-- `includePM10` Include PM10 measurements in the AQI calculation. The highest AQI calculated from PM2.5 and PM10 will be used to calculate the air quality. The AQI calculations from PM2.5 and PM10 are not the same.
+- `includePM10` Include PM10 measurements in the AQI calculation. The highest AQI calculated from PM2.5 and PM10 will be used to calculate the air quality.
+- `verboseLogging` Log all measurements
 
 To find your specific "PURPLE_AIR_STATION_ID" (a string):
 1. Use the PurpleAir Map to locate a station (https://www.purpleair.com/map)

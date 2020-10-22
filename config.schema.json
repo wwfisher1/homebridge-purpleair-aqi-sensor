@@ -1,0 +1,73 @@
+{
+  "pluginAlias": "PurpleAir-MultiSensor",
+  "pluginType": "accessory",
+  "singular": false,
+  "headerDisplay": "Find the sensor ID by going to <a href='https://www.purpleair.com/map'>PurpleAir's map</a> -> click on your sensor -> 'Get This Widget' -> 'JSON' and look at the URL. It's the number right after 'show'.",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "required": true
+      },
+      "purpleID": {
+        "title": "Sensor ID",
+        "type": "number",
+        "required": true
+      },
+      "key": {
+        "title": "API key for private sensors",
+        "type": "string",
+        "required": false
+      },
+      "localIP": {
+        "title": "Local IP address (optional)",
+        "type": "string",
+        "required": false
+      },
+      "updateFreq": {
+        "title": "Update frequency (sec)",
+        "type": "string",
+        "default": "90",
+        "required": true
+      },
+      "adjust" : {
+        "title": "Convert raw PM2.5 value",
+        "type": "string",
+        "require": false,
+        "default": "None",
+        "oneOf": [
+          { "title": "No conversion", "enum": ["NONE"] },
+          { "title": "EPA", "enum": ["EPA"] },
+          { "title": "AQandU", "enum": ["AQANDU"] },
+          { "title": "LRAPA", "enum": ["LRAPA"] }
+        ]
+      },
+      "statsKey": {
+        "title": "Reading Averages (default = realtime)",
+        "type": "string",
+        "default": "v",
+        "oneOf": [
+          { "title": "realtime", "enum": ["v"] },
+          { "title": "10 minute average", "enum": ["v1"] },
+          { "title": "30 minute average", "enum": ["v2"] },
+          { "title": "1 hour average", "enum": ["v3"] },
+          { "title": "6 hour average", "enum": ["v4"] },
+          { "title": "24 hour average", "enum": ["v5"] },
+          { "title": "1 week average", "enum": ["v6"] }
+        ]
+      },
+      "includePM10": {
+        "title": "Include PM10 measurements in the AQI calculation. The highest AQI calculated from PM2.5 and PM10 will be used to calculate the air quality.",
+        "default": false,
+        "type": "boolean"
+      },
+      "verboseLogging": {
+        "title": "Verbose logging. If checked, log more information at info level, so you can see what's happening in homebridge log without running homebridge in debug mode.",
+        "default": false,
+        "type": "boolean"
+      }
+    }
+  }
+}
