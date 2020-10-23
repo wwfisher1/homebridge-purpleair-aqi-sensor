@@ -63,6 +63,12 @@
         "default": false,
         "type": "boolean"
       },
+      "adjustTemp": {
+        "title": "Adjust the reported temperature to compensate for internal heat from the sensor",
+        "type": "string",
+        "default": "0",
+        "required": true
+      },
       "verboseLogging": {
         "title": "Verbose logging. If checked, log more information at info level, so you can see what's happening in homebridge log without running homebridge in debug mode.",
         "default": false,

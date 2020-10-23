@@ -54,7 +54,7 @@ function PurpleAirAccessory(log, config) {
 	this.log.info("PurpleAir is working");
 
   this.localIP = config.localIP;
- 
+  this.adjustTemp = config.adjustTemp;
   this.verboseLogging = config.verboseLogging;
 
 	// Update the air data at the requested frequency.
@@ -140,7 +140,8 @@ PurpleAirAccessory.prototype = {
 			pm10 = (pm10 + parseFloat(dataB.pm10_0_atm)) / 2;
 		}
 
-		var tempC = (parseFloat(dataA.temp_f) - 32) * 5 / 9;
+    var adjustTemp = Math.min(Math.max(parseFloat(this.adjustTemp), -50), 50);
+		var tempC = (parseFloat(dataA.temp_f) - 32) * 5 / 9 + adjustTemp;
 		var hum = parseFloat(dataA.humidity);
 
 		var pm2_5 = this.adjustPM(va, hum);
