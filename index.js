@@ -6,7 +6,7 @@ var request = require('request');
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
-	homebridge.registerAccessory("@timjwilkinson/homebridge-PurpleAir-MultiSensor", "PurpleAir-MultiSensor", PurpleAirAccessory);
+	homebridge.registerAccessory("@dakarp/homebridge-PurpleAir-MultiSensor", "PurpleAir", PurpleAirAccessory);
 };
 
 
@@ -75,7 +75,7 @@ PurpleAirAccessory.prototype = {
     var self = this;
     
     var url = 'https://www.purpleair.com/json?show=' + this.purpleID;
-    if (this.localIP) {
+    if (this.localIP && this.localIP != '') {
       url = 'http://' + this.localIP + '/json';
     }
 

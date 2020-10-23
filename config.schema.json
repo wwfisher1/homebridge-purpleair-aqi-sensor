@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "PurpleAir-MultiSensor",
+  "pluginAlias": "PurpleAir",
   "pluginType": "accessory",
   "singular": false,
   "headerDisplay": "Find the sensor ID by going to <a href='https://www.purpleair.com/map'>PurpleAir's map</a> -> click on your sensor -> 'Get This Widget' -> 'JSON' and look at the URL. It's the number right after 'show'.",
