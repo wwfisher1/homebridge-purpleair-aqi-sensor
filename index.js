@@ -6,7 +6,7 @@ var request = require('request');
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
-	homebridge.registerAccessory("@dakarp/homebridge-PurpleAir-MultiSensor", "PurpleAir", PurpleAirAccessory);
+	homebridge.registerAccessory("@wwfisher1/homebridge-PurpleAir-MultiSensor", "PurpleAir", PurpleAirAccessory);
 };
 
 
