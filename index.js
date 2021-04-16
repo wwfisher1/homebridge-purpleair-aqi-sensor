@@ -141,7 +141,7 @@ PurpleAirAccessory.prototype = {
 		}
 
                 var adjustTempF = Math.min(Math.max(parseFloat(this.adjustTemp), -50), 50);
-		var tempC = (parseFloat(dataA.temp_f) - adjustTempF- 32) * 5 / 9 + adjustTemp;
+		var tempC = (parseFloat(dataA.temp_f) - adjustTempF - 32) * 5 / 9 + adjustTemp;
 		
 		var adjustHum = Math.min(Math.max(parseFloat(this.adjustHum), -100), 100);
 		var hum = parseFloat(dataA.humidity) + adjustHum;
