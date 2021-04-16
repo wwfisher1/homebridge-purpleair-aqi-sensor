@@ -63,11 +63,17 @@
         "default": false,
         "type": "boolean"
       },
-      "adjustTemp": {
+      "adjustTempF": {
         "title": "Adjust the reported temperature to compensate for internal heat from the sensor",
         "type": "string",
-        "default": "0",
+        "default": "-8",
         "required": true
+      },
+      "adjustHum": {
+        "title": "Adjust the reported humidity to compensate for internal drying from the sensor",
+        "type": "string",
+        "default": "4".
+        "required": false
       },
       "verboseLogging": {
         "title": "Verbose logging. If checked, log more information at info level, so you can see what's happening in homebridge log without running homebridge in debug mode.",
