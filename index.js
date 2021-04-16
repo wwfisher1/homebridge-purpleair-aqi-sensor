@@ -140,9 +140,11 @@ PurpleAirAccessory.prototype = {
 			pm10 = (pm10 + parseFloat(dataB.pm10_0_atm)) / 2;
 		}
 
-    var adjustTemp = Math.min(Math.max(parseFloat(this.adjustTemp), -50), 50);
-		var tempC = (parseFloat(dataA.temp_f) - 32) * 5 / 9 + adjustTemp;
-		var hum = parseFloat(dataA.humidity);
+                var adjustTempF = Math.min(Math.max(parseFloat(this.adjustTemp), -50), 50);
+		var tempC = (parseFloat(dataA.temp_f) - adjustTempF- 32) * 5 / 9 + adjustTemp;
+		
+		var adjustHum = Math.min(Math.max(parseFloat(this.adjustHum), -100), 100);
+		var hum = parseFloat(dataA.humidity) + adjustHum;
 
 		var pm2_5 = this.adjustPM(va, hum);
 		var aqi = this.calculateAQI2_5(pm2_5);
