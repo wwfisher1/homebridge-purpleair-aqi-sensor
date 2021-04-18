@@ -54,6 +54,8 @@ Fields:
 - `adjust` Adjust the raw PM2.5 value based on various algorithms. These are: NONE (raw values), EPA, LRAPA and AQANDU.
 - `includePM10` Include PM10 measurements in the AQI calculation. The highest AQI calculated from PM2.5 and PM10 will be used to calculate the air quality.
 - `verboseLogging` Log all measurements
+- `adjustTempF` adjust temperature reading to compensate for internal heating of the device. PurpleLAir suggests a -8F degree adjustment.
+- `adjustHum` adjust humidity reading to compensate for internal drying in the device. PurpleAir sugggest a +4F degree adjustment.
 
 To find your specific "PURPLE_AIR_STATION_ID" (a string):
 1. Use the PurpleAir Map to locate a station (https://www.purpleair.com/map)
