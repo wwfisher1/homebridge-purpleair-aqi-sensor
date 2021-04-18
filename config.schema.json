@@ -72,7 +72,7 @@
       "adjustHum": {
         "title": "Adjust the reported humidity to compensate for internal drying from the sensor",
         "type": "string",
-        "default": "4".
+        "default": "4",
         "required": false
       },
       "verboseLogging": {
