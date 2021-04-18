@@ -16,7 +16,7 @@ This plugin supports Air Quality, PM2.5, Temperature and Humidity.
 1. Install Homebridge using: `(sudo) npm install -g --unsafe-perm homebridge`.
 2. Install this plugin manually:
     1. find the directory that `homebridge` was installed in (e.g. `/usr/local/lib/node-modules`)
-    2. create `homebridge-purpleair` in that directory
+    2. create `homebridge-PurpleAir-Multisensor` in that directory
     3. copy `index.js` and `package.js` into this directory
     4. make sure the file/directory ownership and RWX permissions are the same as other modules in that directory
 3. Update your `homebridge` configuration file like the example below.
@@ -36,7 +36,9 @@ Example config.json
           "statsKey": "v1",
           "adjust": "NONE",
           "includePM10": false,
-          "verboseLogging": false
+          "verboseLogging": false,
+          "adjustTempF": "-8",
+          "adjustHum": "4"
     }
 ]
 ```
