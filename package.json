@@ -1,5 +1,5 @@
 {
-  "name": "@wwfisher1/homebridge-purpleair-multisensor",
+  "name": "@wwfisher1/homebridge-PurpleAir-Multisensor",
   "version": "1.0.0",
   "description": "Homebridge plugin for showing PurpleAir air quality, temperature, and humidity data (fork of original plugin, with various improvements)",
   "main": "index.js",
