@@ -16,7 +16,7 @@ This plugin supports Air Quality, PM2.5, Temperature and Humidity.
 1. Install Homebridge using: `(sudo) npm install -g --unsafe-perm homebridge`.
 2. Install this plugin manually:
     1. find the directory that `homebridge` was installed in (e.g. `/usr/local/lib/node-modules`)
-    2. create `homebridge-PurpleAir-Multisensor` in that directory
+    2. create `homebridge-purpleair-multisensor` in that directory
     3. copy `index.js` and `package.js` into this directory
     4. make sure the file/directory ownership and RWX permissions are the same as other modules in that directory
 3. Update your `homebridge` configuration file like the example below.
@@ -55,7 +55,7 @@ Fields:
 - `includePM10` Include PM10 measurements in the AQI calculation. The highest AQI calculated from PM2.5 and PM10 will be used to calculate the air quality.
 - `verboseLogging` Log all measurements
 - `adjustTempF` adjust temperature reading to compensate for internal heating of the device. PurpleLAir suggests a -8F degree adjustment.
-- `adjustHum` adjust humidity reading to compensate for internal drying in the device. PurpleAir sugggest a +4F degree adjustment.
+- `adjustHum` adjust humidity reading to compensate for internal drying in the device. PurpleAir suggests a +4F degree adjustment.
 
 To find your specific "PURPLE_AIR_STATION_ID" (a string):
 1. Use the PurpleAir Map to locate a station (https://www.purpleair.com/map)
