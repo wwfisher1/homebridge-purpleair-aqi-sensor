@@ -1,8 +1,8 @@
 "use strict";
 
 var Service, Characteristic;
-var request = require('request');
-// var request = require('got');
+// var request = require('request');
+var request = require('got');
 
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
