@@ -20,6 +20,7 @@ This plugin supports Air Quality, PM2.5, Temperature and Humidity.
     3. copy `index.js` and `package.js` into this directory
     4. make sure the file/directory ownership and RWX permissions are the same as other modules in that directory
 3. Update your `homebridge` configuration file like the example below.
+4. If homebridge log file shows an error to the effect that the "request" module could not be found, run '(sudo) npm install -g request'
 
 
 ## Configuration
