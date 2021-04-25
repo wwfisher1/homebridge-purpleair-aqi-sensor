@@ -51,7 +51,7 @@ function PurpleAirAccessory(log, config) {
         this.updateMsecs = this.updateFreq * 1000;
         this.includePM10 = config.includePM10 || false;
 
-        this.log.info("WTF - PurpleAir is working");
+        this.log.info("PurpleAir is working");
 
   this.localIP = config.localIP;
   this.adjustTempF = config.adjustTempF;
