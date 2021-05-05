@@ -1,5 +1,7 @@
 "use strict"; 
-// TESTING GIT
+
+// TESTING GIT yet again
+
 var Service, Characteristic;
 var request = require('request'); 
 
