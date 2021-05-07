@@ -1,7 +1,5 @@
 "use strict"; 
 
-// TESTING GIT yet again, but from branch on laptop
-
 var Service, Characteristic;
 var request = require('request'); 
 
