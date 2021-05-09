@@ -1,4 +1,4 @@
-# Homebridge-purpleair-aqi-sensor
+# Homebridge-purpleair-aqi-sensor JUST A QUICK BIT OF TEST TEXT (5/9 at 10:33am)
 [![NPM Version](https://img.shields.io/npm/v/homebridge-airly.svg)](https://www.npmjs.com/package/homebridge-airly)
 
 **Homebridge plugin that is showing information about air quality from PurpleAir API.**
