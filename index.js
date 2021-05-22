@@ -1,7 +1,5 @@
 "use strict"; 
 
-// TESTING GIT yet again, from wwfisher1-patch-1:
-
 var Service, Characteristic;
 var request = require('request'); 
 
