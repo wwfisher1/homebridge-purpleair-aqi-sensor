@@ -3,7 +3,7 @@
 
 **Homebridge plugin that is showing information about air quality from PurpleAir API.**
 
-Project XXXXX is based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather), [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow), [SANdood's homebridge-purpleair](https://github.com/SANdood/homebridge-purpleair), and [aanon4's homebridge-purpleair](https://github.com/aanon4/homebridge-purpleair).
+Based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather), [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow), [SANdood's homebridge-purpleair](https://github.com/SANdood/homebridge-purpleair), and [aanon4's homebridge-purpleair](https://github.com/aanon4/homebridge-purpleair).
 
 This plugin supports Air Quality, PM2.5, Temperature and Humidity.
 
