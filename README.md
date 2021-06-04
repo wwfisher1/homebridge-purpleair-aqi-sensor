@@ -5,7 +5,7 @@
 
 Based on [homebridge-weather](https://github.com/werthdavid/homebridge-weather), [homebridge-arinow](https://github.com/ToddGreenfield/homebridge-airnow), [SANdood's homebridge-purpleair](https://github.com/SANdood/homebridge-purpleair), and [aanon4's homebridge-purpleair](https://github.com/aanon4/homebridge-purpleair).
 
-This plugin supports Air Quality, PM2.5, Temperature and Humidity.
+This plugin supports Air Quality, PM2.5, Temperature, and Humidity.
 
 ## Installation
 1. Install Homebridge using: `(sudo) npm install -g --unsafe-perm homebridge`.
