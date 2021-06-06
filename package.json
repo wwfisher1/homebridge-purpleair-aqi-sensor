@@ -1,0 +1,36 @@
+{
+  "name": "@wwfisher1/homebridge-purpleair-multisensor",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for showing PurpleAir air quality, temperature, and humidity data (fork of original plugin, with various improvements)",
+  "main": "index.js",
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "purple air",
+    "purpleair",
+    "air quality",
+    "pollution"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wwfisher1/homebridge-PurpleAir-MultiSensor.git"
+  },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "author": "D. A. Karp, Barry A. Burke, Tim Wilkinson",
+  "license": "GNU",
+  "bugs": {
+    "url": "https://github.com/wwfisher1/homebridge-PurpleAir-MultiSensor/issues"
+  },
+  "homepage": "https://github.com/wwfisher1/homebridge-PurpleAir-MultiSensor#readme",
+  "dependencies": {
+    "request": "^2.83.0",
+    "stringstream": ">=0.0.6",
+    "extend": ">=3.0.2"
+  }
+}
