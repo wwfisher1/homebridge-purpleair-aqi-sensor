@@ -1,75 +1,326 @@
-Last login: Tue Jun  8 11:51:28 on ttys000
+"use strict"; 
 
-The default interactive shell is now zsh.
-To update your account to use zsh, please run `chsh -s /bin/zsh`.
-For more details, please visit https://support.apple.com/kb/HT208050.
-Napili-Kai:~ Bill$ !ssh
-ssh homebridge.local
-Bill@homebridge.local's password: 
-Permission denied, please try again.
-Bill@homebridge.local's password: 
-Permission denied, please try again.
-Bill@homebridge.local's password: 
-Bill@homebridge.local: Permission denied (publickey,password).
-Napili-Kai:~ Bill$ ssh pi@homebridge.local
-Linux homebridge 5.10.17+ #1403 Mon Feb 22 11:26:13 GMT 2021 armv6l
+var Service, Characteristic;
+var request = require('request'); 
 
-The programs included with the Debian GNU/Linux system are free software;
-the exact distribution terms for each program are described in the
-individual files in /usr/share/doc/*/copyright.
-Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
-permitted by applicable law.
+module.exports = function (homebridge) {
+        Service = homebridge.hap.Service;
+        Characteristic = homebridge.hap.Characteristic;
+        homebridge.registerAccessory("@wwfisher1/homebridge-purpleair-aqi-sensor", "PurpleAir", PurpleAirAccessory);
+};
 
-*** Homebridge Raspbian v1.0.21 - Raspberry Pi Zero W Rev 1.1 ***
 
-homebridge was created by nfarina and licensed under the Apache License 2.0.
-homebridge-config-ui-x was created by oznu and licensed under the MIT License.
+/**
+ * PurpleAir Accessory
+ */
+function PurpleAirAccessory(log, config) {
+        this.log = log;
 
-To configure Homebridge browse to the one of the following addresses from 
-another device on your network:
+        this.purpleID = config.purpleID;
+        switch (config.adjust) {
+                case 'NONE':
+                case 'EPA':
+                case 'LRAPA':
+                case 'AQANDU':
+                        this.adjust = config.adjust;
+                        break;
+                default:
+                        this.adjust = 'NONE';
+                        break;
+        }
+        switch (config.statsKey) {
+                case 'v':
+                case 'v1':
+                case 'v2':
+                case 'v3':
+                case 'v4':
+                case 'v5':
+                case 'v6':
+                        this.statsKey = config.statsKey;
+                        break;
+                default:
+                        this.statsKey = 'v';
+                        break;
+        }
+        this.lastupdate = 0;
 
-* http://homebridge.local:8581
-* http://192.168.4.194:8581
+        this.updateFreq = config.updateFreq;
+        if (!this.updateFreq) {
+                this.updateFreq = 90            // default 90 sec
+        }
+        this.updateMsecs = this.updateFreq * 1000;
+        this.includePM10 = config.includePM10 || false;
 
-All Homebridge configuration can be completed via the Homebridge Web UI.
+        this.log.info("PurpleAir is working");
 
-Homebridge storage path: /var/lib/homebridge
-Homebridge config.json path: /var/lib/homebridge/config.json
+  this.localIP = config.localIP;
+  this.adjustTempF = config.adjustTempF;
+  this.adjustHum   = config.adjustHum;
+  this.verboseLogging = config.verboseLogging;
 
-Restart Homebridge CMD: sudo hb-service restart
-View Logs CMD: sudo hb-service logs
+        // Update the air data at the requested frequency.
+        var self = this;
+        setInterval(function () {
+                self.getPurpleAirData();
+        }, this.updateMsecs);
+        this.getPurpleAirData();
+}
 
-Manage Homebridge: sudo hb-config
+PurpleAirAccessory.prototype = {
+        /**
+         * Get all Air data from PurpleAir
+         */
+        getPurpleAirData: function () {
+                // Make request every updateFreq seconds (PurpleAir actual update frequency is around 40 seconds, but we really don't need that precision here}
+                // this.log("getPurpleAirData called... lastupdate: %s, now: %s, freq: %s", this.lastupdate.toString(), timenow.toString(), this.updateMsecs.toString());
+    var self = this;
+    
+    var url = 'https://www.purpleair.com/json?show=' + this.purpleID;
+    if (this.localIP && this.localIP != '') {
+      url = 'http://' + this.localIP + '/json';
+    }
 
-Last login: Tue Jun  8 08:15:47 2021 from fe80::1026:fe91:a383:9cf4%wlan0
-pi@homebridge:~ $ sudo su
-root@homebridge:/home/pi# cd /usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# ls
-config.schema.json  index.js  index.js.save  index.js.save.1  index.js.save.2  index.js.save.3	LICENSE  package.json  package-lock.json  README.md
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# git status
-On branch master
-Your branch is ahead of 'origin/master' by 2 commits.
-  (use "git push" to publish your local commits)
+                request({
+                        url: url,
+                        json: true,
+                }, function (err, response, data) {
+                        // If no errors
+                        if (!err && response.statusCode === 200) {
+                                self.updateData(data);
+                                // If error
+                        }
+                        else {
+                                self.airQuality.updateCharacteristic(Characteristic.StatusFault, 1);
+                                self.log.error("PurpleAir Network or Unknown Error.");
+                        };
+                });
+        },
 
-Changes to be committed:
-  (use "git reset HEAD <file>..." to unstage)
+        /**
+         * Update data
+         */
+        updateData: function (data) {
+                this.airQuality.updateCharacteristic(Characteristic.StatusFault, 0);
 
-	modified:   index.js
-	new file:   index.js.save
-	new file:   index.js.save.1
-	new file:   index.js.save.2
-	new file:   index.js.save.3
+                // PurpleAir outdoor sensors send data from two internal sensors, but indoor sensors only have one
+                // We have to verify exterior/interior, and if exterior, whether both sensors are working or only 1
+                var statsA;
+                var statsB = { lastModified: 0 };
+                var dataA;
+                var dataB;
+                var newest = 0;
 
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# vim.tiny index.js
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# cp index.js index.js.copy
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# move index.js.copy Volumes/Users/Bill
-bash: move: command not found
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# mv index.js.copy Volumes/Users/B^C
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# ls /
-bin/        dev/        home/       lost+found/ mnt/        proc/       run/        srv/        tmp/        var/        
-boot/       etc/        lib/        media/      opt/        root/       sbin/       sys/        usr/        
-root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# vi index.js
+                // Basic sanity check
+                if (!data.results || !data.results[0] || !data.results[0].Stats) {
+                        return;
+                }
 
+                dataA = data.results[0];
+                statsA = JSON.parse(dataA.Stats);
+                if (data.results[1] && data.results[1].Stats && data.results[0].DEVICE_LOCATIONTYPE !== 'inside') {
+                        dataB = data.results[1];
+                        statsB = JSON.parse(dataB.Stats);
+                }
+
+                newest = Math.max(statsA.lastModified, statsB.lastModified);
+                if (newest <= this.lastupdate) {
+                        return;
+                }
+                this.lastupdate = newest;
+
+                var va = statsA[this.statsKey];
+                var vb = statsB[this.statsKey];
+                if (va && vb) {
+                        va = (va + vb) / 2;
+                }
+                else if (!va) {
+                        va = vb || 0;
+                }
+                var pm10 = parseFloat(dataA.pm10_0_atm);
+                if (dataB) {
+                        pm10 = (pm10 + parseFloat(dataB.pm10_0_atm)) / 2;
+                }
+
+                var adjustTempF = Math.min(Math.max(parseFloat(this.adjustTempF), -50), 50);
+                var tempC = (parseFloat(dataA.temp_f) + adjustTempF - 32) * 5 / 9;
+
+                var adjustHum = Math.min(Math.max(parseFloat(this.adjustHum), -100), 100);
+                var hum = parseFloat(dataA.humidity) + adjustHum;
+
+                var pm2_5 = this.adjustPM(va, hum);
+                var aqi = this.calculateAQI2_5(pm2_5);
+                if (this.includePM10) {
+                        // If we include PM10 measurements in the AQI, we select the highest of the two
+                        aqi = Math.max(aqi, this.calculateAQI10(pm10));
+                }
+
+                this.airQuality.updateCharacteristic(Characteristic.PM2_5Density, pm2_5.toFixed(2));
+                this.airQuality.updateCharacteristic(Characteristic.PM10Density, pm10.toFixed(2));
+                this.airQuality.updateCharacteristic(Characteristic.AirQuality, this.transformAQI(aqi));
+
+                this.temperature.updateCharacteristic(Characteristic.CurrentTemperature, tempC);
+                this.humidity.updateCharacteristic(Characteristic.CurrentRelativeHumidity, hum);
+
+    if (this.verboseLogging) {
+      this.log.debug("PurpleAir %s pm2_5 is %s, pm10 is %s, AQI is %s, Air Quality is %s. Temperature is %sC. Humidity is %s%%",
+        this.statsKey, pm2_5.toString(), pm10.toFixed(2), aqi.toString(), this.airQualityString(aqi), tempC.toFixed(1), hum.toFixed(1));
+    }
+        },
+
+        adjustPM(pm, rh) {
+                switch (this.adjust) {
+                        case 'EPA':
+                                pm = 0.534 * pm - 0.0844 * rh + 5.604;
+                                break;
+                        case 'LRAPA':
+                                pm = 0.5 * pm - 0.66;
+                                break;
+                        case 'AQANDU':
+                                pm = 0.778 * pm + 2.65;
+                                break;
+                        case 'NONE':
+                        default:
+                                break;
+                }
+                return pm;
+        },
+
+        calculateAQI2_5: function (pm) {
+                var aqi;
+                if (pm > 500) {
+                        aqi = 500;
+                }
+                else if (pm > 350.5) {
+                        aqi = this.remap(pm, 350.5, 500.5, 400, 500);
+                }
+                else if (pm > 250.5) {
+                        aqi = this.remap(pm, 250.5, 350.5, 300, 400);
+                }
+                else if (pm > 150.5) {
+                        aqi = this.remap(pm, 150.5, 250.5, 200, 300);
+                }
+                else if (pm > 55.5) {
+                        aqi = this.remap(pm, 55.5, 150.5, 150, 200);
+                }
+                else if (pm > 35.5) {
+                        aqi = this.remap(pm, 35.5, 55.5, 100, 150);
+                }
+                else if (pm > 12) {
+                        aqi = this.remap(pm, 12, 35.5, 50, 100);
+                }
+                else if (pm > 0) {
+                        aqi = this.remap(pm, 0, 12, 0, 50);
+                }
+                else {
+                        aqi = 0
+                }
+                return Math.round(aqi);
+        },
+
+        calculateAQI10: function(pm) {
+                var aqi;
+                if (pm >= 605) {
+                        aqi = 500;
+                }
+                else if (pm >= 505) {
+                        aqi = this.remap(pm, 505, 605, 400, 500);
+                }
+                else if (pm >= 425) {
+                        aqi = this.remap(pm, 425, 505, 300, 400);
+                }
+                else if (pm >= 355) {
+                        aqi = this.remap(pm, 355, 425, 200, 300);
+                }
+                else if (pm >= 255) {
+                        aqi = this.remap(pm, 255, 355, 150, 200);
+                }
+                else if (pm >= 155) {
+                        aqi = this.remap(pm, 155, 255, 100, 150)
+                }
+                else if (pm >= 55) {
+                        aqi = this.remap(pm, 55, 155, 50, 100);
+                }
+                else {
+                        aqi = this.remap(pm, 0, 55, 0, 50);
+                }
+                return Math.round(aqi);
+        },
+
+        /**
+         * Return Air Quality Index
+         * @param aqi
+         * @returns {number}
+         */
+        transformAQI: function (aqi) {
+                // this.log("Transforming %s.", aqi.toString())
+                if (aqi == undefined) {
+                        return 0; // Error or unknown response
+                }
+                else if (aqi <= 50) {
+                        return 1; // Return EXCELLENT
+                }
+                else if (aqi <= 100) {
+                        return 2; // Return GOOD
+                }
+                else if (aqi <= 150) {
+                        return 3; // Return FAIR
+                }
+                else if (aqi <= 200) {
+                        return 4; // Return INFERIOR
+                }
+                else if (aqi > 200) {
+                        return 5; // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
+                }
+        },
+
+        airQualityString: function (aqi) {
+                if (aqi == undefined) {
+                        return "Unknown"; // Error or unknown response
+                }
+                else if (aqi <= 50) {
+                        return "Excellent"; // Return EXCELLENT
+                }
+                else if (aqi <= 100) {
+                        return "Good"; // Return GOOD
+                }
+                else if (aqi <= 150) {
+                        return "Fair"; // Return FAIR
+                }
+                else if (aqi <= 200) {
+                        return "Inferior"; // Return INFERIOR
+                }
+                else if (aqi > 200) {
+                        return "Poor"; // Return POOR (Homekit only goes to cat 5, so combined the last two AQI cats of Very Unhealty and Hazardous.
+                }
+        },
+
+        remap: function (value, fromLow, fromHigh, toLow, toHigh) {
+                var fromRange = fromHigh - fromLow;
+                var toRange = toHigh - toLow;
+                var scaleFactor = toRange / fromRange;
+
+                // Re-zero the value within the from range
+                var tmpValue = value - fromLow;
+                // Rescale the value to the to range
+                tmpValue *= scaleFactor;
+                // Re-zero back to the to range
+                return tmpValue + toLow;
+        },
+
+
+        identify: function (callback) {
+                this.log("Identify requested!");
+                callback(); // success
+        },
+
+        getServices: function () {
+                /**
+                 * Informations
+                 */
+                var informationService = new Service.AccessoryInformation();
+                informationService
+                        .updateCharacteristic(Characteristic.Manufacturer, "PurpleAir")
+                        .updateCharacteristic(Characteristic.Model, "JSON_API")
                         .updateCharacteristic(Characteristic.SerialNumber, this.purpleID);
 
                 /**
@@ -91,5 +342,4 @@ root@homebridge:/usr/local/lib/node_modules/homebridge-purpleair-aqi-sensor# vi 
                 this.airQuality.linkedServices = [ this.temperature, this.humidity ];
 
                 return [ informationService, this.airQuality, this.temperature, this.humidity ];
-        }
-};
+        };
