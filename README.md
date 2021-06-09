@@ -59,3 +59,4 @@ To find your specific "PURPLE_AIR_STATION_ID" (a string):
 1. Search for the NAME of the station you found in step A (*using JSONview in Google Chrome makes this a bit easier)*
 1. The Station ID is the first element in the results[:] map - you will enter this ID (1-5 digits) into the preferences for the Air Quality Station
     1. If you have an outdoor sensor, there should be 2 entries in the big JSON file, one for each sensor. Please use only the FIRST entry - the code will find the second and average the values, as done for the PurpleAir map.
+
